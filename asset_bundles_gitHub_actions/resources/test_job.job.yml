@@ -2,13 +2,27 @@ resources:
   jobs:
     test_job:
       name: "Testes Automatizados - Bundle"
+      
+      # ADICIONAR ISSO: Define o ambiente e instala o pacote atual
+      environments:
+        - environment_key: default
+          spec:
+            dependencies:
+              - ../dist/*.whl
+
       tasks:
         - task_key: test_unitario
           notebook_task:
-            notebook_path: "${workspace.root_path}/src/tests/test_main.py"
+            # ALTERADO: Caminho relativo a partir da pasta 'resources'
+            notebook_path: ../src/tests/test_main.py
+          # ADICIONAR ISSO: Usa o ambiente definido acima
+          environment_key: default
 
         - task_key: test_validacao_dados
           notebook_task:
-            notebook_path: "${workspace.root_path}/src/tests/test_results.py"
+            # ALTERADO: Caminho relativo
+            notebook_path: ../src/tests/test_results.py
           depends_on:
             - task_key: test_unitario
+          # ADICIONAR ISSO: Usa o ambiente definido acima
+          environment_key: default

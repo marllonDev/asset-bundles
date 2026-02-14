@@ -1,24 +1,33 @@
 import argparse
+import sys
 from databricks.sdk.runtime import spark
 from asset_bundles_gitHub_actions import taxis
 
-
-def main():
-    # Process command-line arguments
+# Adicione 'args=None' para permitir injeção de argumentos no teste
+def main(args=None):
+    # Se args for None, usa sys.argv (comportamento normal do job)
+    # Se args for uma lista (ex: no teste), usa a lista
     parser = argparse.ArgumentParser(
         description="Databricks job with catalog and schema parameters",
     )
     parser.add_argument("--catalog", required=True)
     parser.add_argument("--schema", required=True)
-    args = parser.parse_args()
+    
+    # Processa os argumentos passados ou os do sistema
+    parsed_args = parser.parse_args(args)
 
     # Set the default catalog and schema
-    spark.sql(f"USE CATALOG {args.catalog}")
-    spark.sql(f"USE SCHEMA {args.schema}")
+    spark.sql(f"USE CATALOG {parsed_args.catalog}")
+    spark.sql(f"USE SCHEMA {parsed_args.schema}")
 
     # Example: just find all taxis from a sample catalog
-    taxis.find_all_taxis().show(5)
-
+    df = taxis.find_all_taxis()
+    
+    # Exibe no log
+    df.show(5)
+    
+    # RETORNA o DataFrame para que o teste possa validar se funcionou
+    return df
 
 if __name__ == "__main__":
     main()
