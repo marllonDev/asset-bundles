@@ -1,0 +1,53 @@
+name: Deploy Databricks Bundle
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Databricks CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sudo sh
+
+      - name: Install UV (para artefato Python)
+        run: pip install uv
+
+      - name: Authenticate to Databricks
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          databricks configure --token << EOF
+          $DATABRICKS_HOST
+          $DATABRICKS_TOKEN
+          EOF
+
+      - name: Validate Bundle
+        run: databricks bundle validate
+
+      - name: Run unit tests
+        run: |
+          if [ -f "requirements.txt" ]; then pip install -r requirements.txt; fi
+          if [ -d "tests" ]; then pytest tests/ -v; else echo "No tests folder"; fi
+
+      - name: Deploy to Dev (PR)
+        if: github.event_name == 'pull_request'
+        run: databricks bundle deploy -t dev
+
+      - name: Deploy to Prod (main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: databricks bundle deploy -t prod

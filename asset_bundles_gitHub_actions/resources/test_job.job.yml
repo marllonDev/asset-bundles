@@ -1,0 +1,14 @@
+resources:
+  jobs:
+    test_job:
+      name: "Testes Automatizados - Bundle"
+      tasks:
+        - task_key: test_unitario
+          notebook_task:
+            notebook_path: "${workspace.root_path}/src/tests/test_main.py"
+
+        - task_key: test_validacao_dados
+          notebook_task:
+            notebook_path: "${workspace.root_path}/src/tests/test_results.py"
+          depends_on:
+            - task_key: test_unitario

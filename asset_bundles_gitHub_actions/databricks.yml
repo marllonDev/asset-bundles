@@ -12,6 +12,7 @@ artifacts:
   python_artifact:
     type: whl
     build: uv build --wheel
+    path: .
 
 # Variable declarations. These variables are assigned in the dev/prod targets below.
 variables:
@@ -19,6 +20,10 @@ variables:
     description: The catalog to use
   schema:
     description: The schema to use
+
+sync:
+  include:
+    - src/tests/**/*.py
 
 targets:
   dev:
